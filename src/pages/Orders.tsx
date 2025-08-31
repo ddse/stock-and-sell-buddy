@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, Edit, Trash2, Plus } from "lucide-react";
 
@@ -18,6 +21,15 @@ interface Order {
 
 export default function Orders() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showNewOrderDialog, setShowNewOrderDialog] = useState(false);
+  const [showEditOrderDialog, setShowEditOrderDialog] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [formData, setFormData] = useState({
+    customerName: "",
+    items: "",
+    total: "",
+    status: "Pending" as Order["status"]
+  });
   const { toast } = useToast();
 
   const orders: Order[] = [
@@ -91,23 +103,67 @@ export default function Orders() {
   const processingOrders = orders.filter(order => order.status === "Processing").length;
 
   const handleNewOrder = () => {
-    toast({
-      title: "New Order",
-      description: "Opening new order form...",
+    setFormData({
+      customerName: "",
+      items: "",
+      total: "",
+      status: "Pending"
     });
+    setShowNewOrderDialog(true);
+  };
+
+  const handleEditOrder = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      setSelectedOrder(order);
+      setFormData({
+        customerName: order.customerName,
+        items: order.items.toString(),
+        total: order.total.toString(),
+        status: order.status
+      });
+      setShowEditOrderDialog(true);
+    }
+  };
+
+  const handleSaveNewOrder = () => {
+    if (!formData.customerName || !formData.items || !formData.total) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Order Created",
+      description: `New order for ${formData.customerName} has been created.`,
+    });
+    setShowNewOrderDialog(false);
+  };
+
+  const handleSaveEditOrder = () => {
+    if (!formData.customerName || !formData.items || !formData.total) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Order Updated",
+      description: `Order ${selectedOrder?.id} has been updated.`,
+    });
+    setShowEditOrderDialog(false);
   };
 
   const handleViewOrder = (orderId: string) => {
     toast({
       title: "View Order",
       description: `Opening order ${orderId} details...`,
-    });
-  };
-
-  const handleEditOrder = (orderId: string) => {
-    toast({
-      title: "Edit Order",
-      description: `Opening order ${orderId} for editing...`,
     });
   };
 
@@ -126,11 +182,137 @@ export default function Orders() {
           <h1 className="text-3xl font-bold text-foreground">Orders</h1>
           <p className="text-muted-foreground">Manage your customer orders</p>
         </div>
-        <Button onClick={handleNewOrder}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Order
-        </Button>
+        <Dialog open={showNewOrderDialog} onOpenChange={setShowNewOrderDialog}>
+          <DialogTrigger asChild>
+            <Button onClick={handleNewOrder}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Order
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create New Order</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="customer">Customer Name</Label>
+                <Input
+                  id="customer"
+                  value={formData.customerName}
+                  onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+                  placeholder="Enter customer name"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="items">Number of Items</Label>
+                <Input
+                  id="items"
+                  type="number"
+                  value={formData.items}
+                  onChange={(e) => setFormData({...formData, items: e.target.value})}
+                  placeholder="Enter number of items"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="total">Total Amount</Label>
+                <Input
+                  id="total"
+                  type="number"
+                  step="0.01"
+                  value={formData.total}
+                  onChange={(e) => setFormData({...formData, total: e.target.value})}
+                  placeholder="Enter total amount"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={formData.status} onValueChange={(value: Order["status"]) => setFormData({...formData, status: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Processing">Processing</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowNewOrderDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveNewOrder}>
+                Create Order
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
+
+      {/* Edit Order Dialog */}
+      <Dialog open={showEditOrderDialog} onOpenChange={setShowEditOrderDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Order {selectedOrder?.id}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-customer">Customer Name</Label>
+              <Input
+                id="edit-customer"
+                value={formData.customerName}
+                onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+                placeholder="Enter customer name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-items">Number of Items</Label>
+              <Input
+                id="edit-items"
+                type="number"
+                value={formData.items}
+                onChange={(e) => setFormData({...formData, items: e.target.value})}
+                placeholder="Enter number of items"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-total">Total Amount</Label>
+              <Input
+                id="edit-total"
+                type="number"
+                step="0.01"
+                value={formData.total}
+                onChange={(e) => setFormData({...formData, total: e.target.value})}
+                placeholder="Enter total amount"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-status">Status</Label>
+              <Select value={formData.status} onValueChange={(value: Order["status"]) => setFormData({...formData, status: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Processing">Processing</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowEditOrderDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEditOrder}>
+              Update Order
+            </Button>
+          </div>
+        </DialogContent>
+        </Dialog>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
