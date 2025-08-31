@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Phone, Mail, DollarSign, Calendar, AlertTriangle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface DuePayment {
   id: string;
@@ -21,6 +22,21 @@ interface DuePayment {
 
 export default function DuePayments() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
+
+  const handleSendReminder = (payment: DuePayment) => {
+    toast({
+      title: "Reminder Sent",
+      description: `Payment reminder sent to ${payment.customerName} (${payment.id})`,
+    });
+  };
+
+  const handleCollectPayment = (payment: DuePayment) => {
+    toast({
+      title: "Payment Collection Initiated",
+      description: `Started payment collection for ${payment.customerName} - $${payment.dueAmount.toFixed(2)}`,
+    });
+  };
 
   const duePayments: DuePayment[] = [
     {
@@ -198,10 +214,17 @@ export default function DuePayments() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleSendReminder(payment)}
+                      >
                         Send Reminder
                       </Button>
-                      <Button size="sm">
+                      <Button 
+                        size="sm"
+                        onClick={() => handleCollectPayment(payment)}
+                      >
                         Collect Payment
                       </Button>
                     </div>
