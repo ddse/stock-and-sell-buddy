@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import { Search, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 
 interface CartItem {
@@ -17,6 +18,7 @@ interface CartItem {
 export default function POS() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
 
   const products = [
     { id: "1", name: "iPhone 14 Pro", price: 999, category: "Electronics", stock: 15 },
@@ -72,6 +74,26 @@ export default function POS() {
   const total = subtotal + tax;
 
   const clearCart = () => {
+    setCart([]);
+  };
+
+  const processPayment = () => {
+    if (cart.length === 0) {
+      toast({
+        title: "Error",
+        description: "Cart is empty. Add items before processing payment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Simulate payment processing
+    toast({
+      title: "Payment Successful",
+      description: `Payment of $${total.toFixed(2)} processed successfully!`,
+    });
+    
+    // Clear cart after successful payment
     setCart([]);
   };
 
@@ -197,7 +219,7 @@ export default function POS() {
 
                   {/* Action Buttons */}
                   <div className="space-y-2 mt-4">
-                    <Button className="w-full" size="lg">
+                    <Button className="w-full" size="lg" onClick={processPayment}>
                       Process Payment
                     </Button>
                     <Button variant="outline" className="w-full" onClick={clearCart}>
