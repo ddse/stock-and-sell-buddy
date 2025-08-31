@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
 import { Search, Eye, Edit, Trash2, Plus } from "lucide-react";
 
 interface Order {
@@ -17,6 +18,7 @@ interface Order {
 
 export default function Orders() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
 
   const orders: Order[] = [
     {
@@ -88,6 +90,35 @@ export default function Orders() {
   const pendingOrders = orders.filter(order => order.status === "Pending").length;
   const processingOrders = orders.filter(order => order.status === "Processing").length;
 
+  const handleNewOrder = () => {
+    toast({
+      title: "New Order",
+      description: "Opening new order form...",
+    });
+  };
+
+  const handleViewOrder = (orderId: string) => {
+    toast({
+      title: "View Order",
+      description: `Opening order ${orderId} details...`,
+    });
+  };
+
+  const handleEditOrder = (orderId: string) => {
+    toast({
+      title: "Edit Order",
+      description: `Opening order ${orderId} for editing...`,
+    });
+  };
+
+  const handleDeleteOrder = (orderId: string) => {
+    toast({
+      title: "Delete Order",
+      description: `Order ${orderId} has been deleted.`,
+      variant: "destructive",
+    });
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -95,7 +126,7 @@ export default function Orders() {
           <h1 className="text-3xl font-bold text-foreground">Orders</h1>
           <p className="text-muted-foreground">Manage your customer orders</p>
         </div>
-        <Button>
+        <Button onClick={handleNewOrder}>
           <Plus className="h-4 w-4 mr-2" />
           New Order
         </Button>
@@ -180,13 +211,25 @@ export default function Orders() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleViewOrder(order.id)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleEditOrder(order.id)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="destructive">
+                      <Button 
+                        size="sm" 
+                        variant="destructive" 
+                        onClick={() => handleDeleteOrder(order.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
