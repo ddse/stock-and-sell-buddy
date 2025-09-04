@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, Plus, Eye, DollarSign, Banknote, Calendar, Users } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface SalaryRecord {
   id: string;
@@ -34,6 +35,7 @@ export default function Salary() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<SalaryRecord | null>(null);
+  const { toast } = useToast();
 
   const salaryRecords: SalaryRecord[] = [
     {
@@ -134,6 +136,21 @@ export default function Salary() {
     setIsDialogOpen(true);
   };
 
+  const handleProcessPayroll = () => {
+    toast({
+      title: "Payroll Processing Started",
+      description: "Processing payroll for all pending salary records",
+    });
+  };
+
+  const handleProcessPayment = (record: SalaryRecord) => {
+    toast({
+      title: "Payment Processed",
+      description: `Payment processed for ${record.employeeName} - $${record.netSalary.toFixed(2)}`,
+    });
+    setIsDialogOpen(false);
+  };
+
   const getStatusVariant = (status: SalaryRecord["status"]) => {
     switch (status) {
       case "Paid":
@@ -165,7 +182,7 @@ export default function Salary() {
           <h1 className="text-3xl font-bold text-foreground">Salary Management</h1>
           <p className="text-muted-foreground">Manage employee salaries and payroll</p>
         </div>
-        <Button>
+        <Button onClick={handleProcessPayroll}>
           <Plus className="h-4 w-4 mr-2" />
           Process Payroll
         </Button>
@@ -417,7 +434,7 @@ export default function Salary() {
                   Close
                 </Button>
                 {selectedRecord.status === "Pending" && (
-                  <Button>Process Payment</Button>
+                  <Button onClick={() => handleProcessPayment(selectedRecord)}>Process Payment</Button>
                 )}
               </div>
             </div>
