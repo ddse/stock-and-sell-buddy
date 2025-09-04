@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, Plus, Edit, Trash2, Calculator, TrendingDown, Calendar, Receipt } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Expense {
   id: string;
@@ -30,6 +31,7 @@ export default function Expenses() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: "",
     category: "",
@@ -130,6 +132,13 @@ export default function Expenses() {
       // Handle save logic here
       console.log("Saving expense:", formData);
       
+      toast({
+        title: editingExpense ? "Expense Updated" : "Expense Created",
+        description: editingExpense 
+          ? `Updated expense: ${formData.title}` 
+          : `Created new expense: ${formData.title} - $${formData.amount}`,
+      });
+      
       // Reset form
       setFormData({
         title: "",
@@ -143,6 +152,13 @@ export default function Expenses() {
       setEditingExpense(null);
       setIsDialogOpen(false);
     }
+  };
+
+  const handleDeleteExpense = (expense: Expense) => {
+    toast({
+      title: "Expense Deleted",
+      description: `Deleted expense: ${expense.title} (${expense.id})`,
+    });
   };
 
   const handleEditExpense = (expense: Expense) => {
@@ -354,7 +370,11 @@ export default function Expenses() {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="destructive">
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => handleDeleteExpense(expense)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
